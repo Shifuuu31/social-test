@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -23,7 +22,7 @@ import (
 // almost private (only followers of the creator of the post will be able to see the post)
 // private (only the followers chosen by the creator of the post will be able to see it)
 
-func (app *SocialApp) SetupRoutes(mux *http.ServeMux) {
+func (app *SocialApp) SetupPostRoutes(mux *http.ServeMux) {
 	postMux := http.NewServeMux()
 
 	postMux.HandleFunc("GET /new", app.NewPost)
@@ -36,26 +35,26 @@ func (app *SocialApp) SetupRoutes(mux *http.ServeMux) {
 }
 
 func (app *SocialApp) GetFeedPosts(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Post root path accessed: %s", r.URL.Path)
-	//TODO need to specify the methode
+	// log.Printf("Post root path accessed: %s", r.URL.Path)
+	// TODO need to specify the methode
 	if r.URL.Path != "/" {
-		utils.DncodeJson(w, 404, "not found")
+		utils.EncodeJson(w, 404, nil)
 
 		return
 	}
-	fmt.Fprintln(w, "Listing all posts")
+	// fmt.Fprintln(w, "Listing all posts")
 }
 
 func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {
 	log.Printf("New post path accessed: %s", r.URL.Path)
 	if r.URL.Path != "/new" {
-		utils.DncodeJson(w, 500, "internal server error")
+		utils.EncodeJson(w, 500, nil)
 
 		return
 	}
 	var post models.Post
 	if err := utils.DecodeJson(r, &post); err != nil {
-		utils.DncodeJson(w, 500, "internal server error")
+		utils.EncodeJson(w, 500, nil)
 		return
 	}
 	stmt, err := app.Posts.DB.Prepare(`
@@ -63,7 +62,7 @@ func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {
     VALUES (?, ?, ?, ?, ?, ?)
 `)
 	if err != nil {
-		utils.DncodeJson(w, 500, "internal server error")
+		utils.EncodeJson(w, 500, nil)
 	}
 	defer stmt.Close()
 
@@ -73,17 +72,17 @@ func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {
 	if post.Privacy == "private" {
 		for _, id := range post.ChosenUsersIds {
 			if _, err := app.Posts.DB.Exec("INSERT INTO post_privacy (chosen_id , post_id) VALUES (?, ?)", id, post.Id); err != nil {
-				utils.DncodeJson(w, 500, "internal server error")
+				utils.EncodeJson(w, 500, nil)
 				return
 			}
 		}
 	}
-	utils.DncodeJson(w, 200, "done")
+	utils.EncodeJson(w, 200, "done")
 }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.DncodeJson(w, 403, "methode not allowed!")
+		utils.EncodeJson(w, 403, nil)
 		return
 	}
 
@@ -96,7 +95,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	file, handler, err := r.FormFile("image")
 	if err != nil {
-		utils.DncodeJson(w, 500, "internal server error")
+		utils.EncodeJson(w, 500, nil)
 		return
 	}
 	defer file.Close()
@@ -104,30 +103,30 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if it's an image
 	ext := strings.ToLower(filepath.Ext(handler.Filename))
 	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" {
-		utils.DncodeJson(w, 400, "bad request!")
+		utils.EncodeJson(w, 400, "bad request!")
 		return
 	}
 
 	// Make sure the uploads directory exists
 	err = os.MkdirAll("uploads", os.ModePerm)
 	if err != nil {
-		utils.DncodeJson(w, 500, "internal server error")
+		utils.EncodeJson(w, 500, nil)
 		return
 	}
 
 	// Save the file
 	dst, err := os.Create(filepath.Join("images", handler.Filename)) // TODO might wann add user spicific folder assignment
 	if err != nil {
-		utils.DncodeJson(w, 500, "internal server error")
+		utils.EncodeJson(w, 500, nil)
 		return
 	}
 	defer dst.Close()
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		utils.DncodeJson(w, 500, "internal server error")
+		utils.EncodeJson(w, 500, nil)
 		return
 	}
 
-	utils.DncodeJson(w, 200, "media saved successfully")
+	utils.EncodeJson(w, 200, nil)
 }

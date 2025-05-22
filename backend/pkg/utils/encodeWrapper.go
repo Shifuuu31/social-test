@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func DecodeJson(r *http.Request, obj interface{}) error {
+func DecodeJson(r *http.Request, obj any) error {
 	if r.Body == nil {
 		return errors.New("request body is empty")
 	}
@@ -29,7 +29,7 @@ func DecodeJson(r *http.Request, obj interface{}) error {
 	return nil
 }
 
-func DncodeJson(w http.ResponseWriter, statusCode int, obj interface{}) error {
+func EncodeJson(w http.ResponseWriter, statusCode int, obj any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 

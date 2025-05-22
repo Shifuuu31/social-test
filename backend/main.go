@@ -38,7 +38,8 @@ func main() {
 			DB: db,
 		},
 	}
-	app.SetupRoutes(mainMux) // Setup routes for posts
+	app.SetupPostRoutes(mainMux) // Setup routes for posts
+	app.SetupCommentRoutes(mainMux) // Setup routes for comments
 
 	log.Println("Routes set up")
 
