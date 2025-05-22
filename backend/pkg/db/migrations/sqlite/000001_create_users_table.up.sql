@@ -9,5 +9,5 @@ CREATE TABLE users (
     nickname TEXT,
     about_me TEXT,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMPz
 );
