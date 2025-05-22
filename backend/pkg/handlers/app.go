@@ -2,7 +2,6 @@ package handlers
 
 import "social-network/pkg/models"
 
-
-type socialApp struct {
+type SocialApp struct {
 	Posts *models.PostModel
 }

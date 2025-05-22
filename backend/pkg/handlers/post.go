@@ -1,9 +1,11 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"social-network/pkg/models"
+	"social-network/pkg/utils"
 )
 
 // Posts
@@ -15,7 +17,7 @@ import (
 // almost private (only followers of the creator of the post will be able to see the post)
 // private (only the followers chosen by the creator of the post will be able to see it)
 
-func (app *socialApp) SetupRoutes(mux *http.ServeMux) {
+func (app *SocialApp) SetupRoutes(mux *http.ServeMux) {
 	postMux := http.NewServeMux()
 
 	postMux.HandleFunc("POST /new", app.NewPost)
@@ -26,18 +28,26 @@ func (app *socialApp) SetupRoutes(mux *http.ServeMux) {
 	mux.Handle("/post/", http.StripPrefix("/post", postMux))
 }
 
-func (app *socialApp) DebugRoutes() string {
+func (app *SocialApp) DebugRoutes() string {
 	return "Available post routes: /, /new, /view/{id}"
 }
 
-func (app *socialApp) GetFeedPosts(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Post root path accessed: %s", r.URL.Path)
+func (app *SocialApp) GetFeedPosts(w http.ResponseWriter, r *http.Request) {
+	var filter *models.PostFilter
 
-	if r.URL.Path != "/" {
-		log.Printf("Not found within post handler: %s", r.URL.Path)
-		http.NotFound(w, r)
+	if err := utils.DecodeJson(r, &filter); err != nil {
+		log.Println(err)
 		return
 	}
-	fmt.Fprintln(w, "Listing all posts")
+
+	posts, err := app.Posts.GetPosts(filter)
+	if err != nil {
+		utils.EncodeJson(w, http.StatusInternalServerError, nil)
+		return
+	}
+	if err := utils.EncodeJson(w, http.StatusOK, posts); err != nil {
+		log.Println(err)
+	}
+	
 }
-func (app *socialApp) NewPost(w http.ResponseWriter, r *http.Request) {}
+func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {}

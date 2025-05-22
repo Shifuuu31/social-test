@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	"social-network/pkg/db/sqlite"
 	"social-network/pkg/handlers"
+	"social-network/pkg/models"
 )
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -16,7 +18,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-
 	db := sqlite.OpenDB()
 	defer db.Close()
 	log.Println("Database connection established")
@@ -25,13 +26,19 @@ func main() {
 
 	// authHandler := handlers.NewAuthHandler(database)
 	// profileHandler := handlers.NewProfileHandler(database)
-	postHandler := handlers.NewPostHandler(db)
+	// postHandler := handlers.NewPostHandler(db)
 
 	log.Println("Handlers created")
 
 	// authHandler.SetupRoutes(mainMux)
 	// profileHandler.SetupRoutes(mainMux)
-	postHandler.SetupRoutes(mainMux)
+	// postHandler.SetupRoutes(mainMux)
+	app := &handlers.SocialApp{
+		Posts: &models.PostModel{
+			DB: db,
+		},
+	}
+	app.SetupRoutes(mainMux) // Setup routes for posts
 
 	log.Println("Routes set up")
 
@@ -43,8 +50,6 @@ func main() {
 		}
 		fmt.Fprintf(w, "Welcome to the Social Network")
 	})
-
-	
 
 	handler := loggingMiddleware(mainMux)
 
