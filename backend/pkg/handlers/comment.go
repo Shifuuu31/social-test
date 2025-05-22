@@ -9,15 +9,6 @@ import (
 	"social-network/pkg/utils"
 )
 
-// Posts
-// After a user is logged in he/she can create posts and comments on already created posts. While creating a post or a comment, the user can include an image or GIF.
-
-// The user must be able to specify the privacy of the post:
-
-// public (all users in the social network will be able to see the post) [no condition to fetch]
-// almost private (only followers of the creator of the post will be able to see the post)
-// private (only the followers chosen by the creator of the post will be able to see it)
-
 func (app *SocialApp) SetupCommentRoutes(mux *http.ServeMux) {
 	commentMux := http.NewServeMux()
 
