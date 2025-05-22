@@ -37,6 +37,9 @@ func main() {
 		Posts: &models.PostModel{
 			DB: db,
 		},
+		Comments: &models.CommentModel{
+			DB: db,
+		},
 	}
 	app.SetupPostRoutes(mainMux) // Setup routes for posts
 	app.SetupCommentRoutes(mainMux) // Setup routes for comments

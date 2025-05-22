@@ -1,12 +1,8 @@
 package handlers
 
 import (
-	"io"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"social-network/pkg/models"
@@ -27,7 +23,7 @@ func (app *SocialApp) SetupPostRoutes(mux *http.ServeMux) {
 
 	postMux.HandleFunc("GET /new", app.NewPost)
 	postMux.HandleFunc("POST /", app.GetFeedPosts)
-	postMux.HandleFunc("POST /new/upload", UploadHandler)
+	// postMux.HandleFunc("POST /new/upload", UploadHandler)
 
 	log.Println("Mounting post multiplexer at /post/")
 
@@ -63,10 +59,27 @@ func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {
 `)
 	if err != nil {
 		utils.EncodeJson(w, 500, nil)
+		return
 	}
+
 	defer stmt.Close()
 
-	if _, err = stmt.Exec(post.OwnerId, post.GroupId, post.Content, post.Image, post.Privacy, time.Now()); err != nil {
+	file, handler, err := r.FormFile("image")
+	if err != nil {
+		utils.EncodeJson(w, 500, nil)
+	}
+
+	defer file.Close()
+	temp, status := "", 0
+	if handler.Filename != "" {
+		temp, status = utils.UploadHandler(file, handler)
+		if status != 200 {
+			utils.EncodeJson(w, status, nil)
+			return
+		}
+	}
+
+	if _, err = stmt.Exec(post.OwnerId, post.GroupId, post.Content, temp, post.Privacy, time.Now()); err != nil {
 		log.Fatal(err)
 	}
 	if post.Privacy == "private" {
@@ -77,56 +90,5 @@ func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	utils.EncodeJson(w, 200, "done")
-}
-
-func UploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		utils.EncodeJson(w, 403, nil)
-		return
-	}
-
-	// // Parse up to 10MB of form data
-	// err := r.ParseMultipartForm(10 << 20) // 10MB
-	// if err != nil {
-	// 	http.Error(w, "Failed to parse form", http.StatusBadRequest)
-	// 	return
-	// }
-
-	file, handler, err := r.FormFile("image")
-	if err != nil {
-		utils.EncodeJson(w, 500, nil)
-		return
-	}
-	defer file.Close()
-
-	// Check if it's an image
-	ext := strings.ToLower(filepath.Ext(handler.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" {
-		utils.EncodeJson(w, 400, "bad request!")
-		return
-	}
-
-	// Make sure the uploads directory exists
-	err = os.MkdirAll("uploads", os.ModePerm)
-	if err != nil {
-		utils.EncodeJson(w, 500, nil)
-		return
-	}
-
-	// Save the file
-	dst, err := os.Create(filepath.Join("images", handler.Filename)) // TODO might wann add user spicific folder assignment
-	if err != nil {
-		utils.EncodeJson(w, 500, nil)
-		return
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		utils.EncodeJson(w, 500, nil)
-		return
-	}
-
 	utils.EncodeJson(w, 200, nil)
 }
