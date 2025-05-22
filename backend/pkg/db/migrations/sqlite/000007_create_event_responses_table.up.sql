@@ -1,4 +1,4 @@
-CREATE TABLE event_responses (
+CREATE TABLE IF NOT EXISTS event_responses (
     event_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
     response TEXT NOT NULL CHECK(response IN ('going', 'not_going')),

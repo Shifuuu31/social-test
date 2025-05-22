@@ -1,4 +1,4 @@
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
     id TEXT PRIMARY KEY,
     group_id TEXT NOT NULL,
     creator_id TEXT NOT NULL,

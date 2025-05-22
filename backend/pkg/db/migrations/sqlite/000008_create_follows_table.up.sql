@@ -1,4 +1,4 @@
-CREATE TABLE follows (
+CREATE TABLE IF NOT EXISTS follows (
     follower_id TEXT NOT NULL,
     followee_id TEXT NOT NULL,
     status TEXT NOT NULL CHECK(status IN ('pending', 'accepted')),

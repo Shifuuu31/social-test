@@ -10,8 +10,9 @@ type Post struct {
 	GroupId   int    `json:"group_id"`
 	Content   string `json:"content"`
 	Image     string `json:"image"`
-	Privacy   string `json:"Privacy"`
-	CreatedAt string `json:"created_at"` // [public', 'almost_private', 'private']
+	Privacy   string `json:"Privacy"` // [public', 'almost_private', 'private']
+	CreatedAt string `json:"created_at"`
+	ChosenUsersIds []int `json:"chosen_user"`
 }
 
 type PostModel struct {
@@ -36,7 +37,7 @@ func (pm *PostModel) GetPosts(filter *PostFilter) error {
 
 	}
 	_ = query
-	
+
 	// pm.db.exec
 	return nil
 }

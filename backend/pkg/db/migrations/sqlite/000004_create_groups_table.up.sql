@@ -1,4 +1,4 @@
-CREATE TABLE groups (
+CREATE TABLE IF NOT EXISTSgroups (
     id TEXT PRIMARY KEY,
     creator_id TEXT NOT NULL,
     title TEXT NOT NULL,

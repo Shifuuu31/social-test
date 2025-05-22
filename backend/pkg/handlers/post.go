@@ -57,7 +57,6 @@ func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {
 	if err := utils.DecodeJson(r, &post); err != nil {
 		log.Printf("internalServerERROR: %s", r.URL.Path)
 		return
-
 	}
 	stmt, err := app.Posts.DB.Prepare(`
     INSERT INTO posts (user_id, group_id, content, image, privacy, created_at)
@@ -70,6 +69,11 @@ func (app *SocialApp) NewPost(w http.ResponseWriter, r *http.Request) {
 
 	if _, err = stmt.Exec(post.OwnerId, post.GroupId, post.Content, post.Image, post.Privacy, time.Now()); err != nil {
 		log.Fatal(err)
+	}
+	if post.Privacy == "private" {
+		for _, id := range post.ChosenUsersIds {
+			app.Posts.DB.Exec("INSERT INTO post_privacy (chosen_id , post_id) VALUES (?, ?)", id, post.Id)
+		}
 	}
 }
 

@@ -1,4 +1,4 @@
-CREATE TABLE posts (
+CREATE TABLE IF NOT EXISTS posts (
     id Integer PRIMARY KEY autoincrement,
     user_id TEXT NOT NULL,
     group_id TEXT,
